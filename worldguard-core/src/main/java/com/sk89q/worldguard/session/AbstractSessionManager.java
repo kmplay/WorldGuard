@@ -57,12 +57,6 @@ public abstract class AbstractSessionManager implements SessionManager {
     public static final int RUN_DELAY = 20;
     public static final long SESSION_LIFETIME = 10;
 
-    private final LoadingCache<WorldPlayerTuple, Boolean> bypassCache = CacheBuilder.newBuilder()
-            .maximumSize(1000)
-            .expireAfterAccess(2, TimeUnit.SECONDS)
-            .build(CacheLoader.from(tuple ->
-                    tuple.getPlayer().hasPermission("worldguard.region.bypass." + tuple.getWorld().getName())));
-
     private final LoadingCache<CacheKey, Session> sessions = CacheBuilder.newBuilder()
             .expireAfterAccess(SESSION_LIFETIME, TimeUnit.MINUTES)
             .build(CacheLoader.from(key ->
@@ -134,8 +128,8 @@ public abstract class AbstractSessionManager implements SessionManager {
     @Override
     public boolean hasBypass(LocalPlayer player, World world) {
         Session sess = getIfPresent(player);
-        return sess != null && !sess.hasBypassDisabled()
-                && bypassCache.getUnchecked(new WorldPlayerTuple(world, player));
+        return sess != null && !sess.hasBypassDisabled() &&
+                player.hasPermission("worldguard.region.bypass." + world.getName());
     }
 
     @Override
